@@ -209,7 +209,7 @@ let g:loaded_matchparen=1
 "let g:go_fmt_autosave = 0
 
 autocmd FileType typescript :set makeprg=tsc\ %
-autocmd FileType gdscript,gdshader let b:coc_root_patterns = ['project.godot', '.godot']
+"autocmd FileType gdscript,gdshader let b:coc_root_patterns = ['project.godot', '.godot']
 
 autocmd QuickFixCmdPost [^1]* nested cwindow
 autocmd QuickFixCmdPost 1* nested lwindow
