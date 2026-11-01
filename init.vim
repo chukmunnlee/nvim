@@ -60,7 +60,7 @@ NeoBundle 'AlexvZyl/nordic.nvim', 'main'
 NeoBundle 'kdheepak/lazygit.nvim'
 NeoBundle 'habamax/vim-godot'
 NeoBundle 'tomtom/tcomment_vim'
-NeoBundle 'nvim-treesitter/nvim-treesitter'
+NeoBundle 'nvim-treesitter/nvim-treesitter', { 'rev': 'main' }
 "
 "
 "NeoBundle 'HerringtonDarkholme/yats.vim.git'
@@ -248,39 +248,35 @@ nnoremap <silent> <leader>ag :Ag<CR>
 
 set nospell
 
+" for treesitter main branch
 lua << EOF
-require'nvim-treesitter.configs'.setup {
-  -- Languages you want installed immediately
-  ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "markdown", "markdown_inline", "gdscript", "godot_resource", "gdshader" },
+  local ts = require('nvim-treesitter')
 
-  -- Install parsers synchronously (only applied to `ensure_installed`)
-  sync_install = false,
+  -- Equivalent to `ensure_installed` + `sync_install = false`
+  ts.install({
+    "c", "lua", "vim", "vimdoc", "query",
+    "markdown", "markdown_inline",
+    "gdscript", "godot_resource", "gdshader",
+  })
 
-  -- Automatically install missing parsers when entering a buffer
-  auto_install = true,
+  -- Equivalent to `highlight = { enable = true }` + `auto_install = true`
+  vim.api.nvim_create_autocmd('FileType', {
+    callback = function(args)
+      -- Start highlighting if parser is already installed
+      if pcall(vim.treesitter.start, args.buf) then
+        return
+      end
 
-  -- Enable advanced syntax highlighting
-  highlight = {
-    enable = true,
-    additional_vim_regex_highlighting = false,
-  },
-
-  indent = { enabled = false },
-}
+      -- Otherwise auto-install if a parser is available for this filetype
+      local lang = vim.treesitter.language.get_lang(vim.bo[args.buf].filetype)
+      if lang and vim.list_contains(ts.get_available(), lang) then
+        ts.install({ lang }):await(function()
+          if vim.api.nvim_buf_is_valid(args.buf) then
+            pcall(vim.treesitter.start, args.buf)
+          end
+        end)
+      end
+    end,
+  })
 EOF
 
-
-"syntastic
-"let g:syntastic_html_tidy_exec='/usr/bin/tidy'
-"let g:syntastic_javascript_checkers=['jshint']
-
-"set statusline+=%#warningmsg#
-"set statusline+=%{SyntasticStatuslineFlag()}
-"set statusline+=%*
-"
-"let g:syntastic_always_populate_loc_list = 1
-"let g:syntastic_auto_loc_list = 1
-"let g:syntastic_loc_list_height=5
-"let g:syntastic_check_on_open = 1
-"let g:syntastic_check_on_wq = 0
-"
